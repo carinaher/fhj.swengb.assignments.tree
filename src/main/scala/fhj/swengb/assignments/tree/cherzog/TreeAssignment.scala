@@ -4,6 +4,8 @@ import javafx.scene.paint.Color
 
 import scala.math.BigDecimal.RoundingMode
 import scala.util.Random
+import scala.math
+
 
 object Graph {
 
@@ -40,7 +42,12 @@ object Graph {
     * @return
     */
   def traverse[A, B](tree: Tree[A])(convert: A => B): Seq[B] = {
-  ???
+    def traverseHelper[A, B](tree: Tree[A], seq: Seq[B])(convert: A => B): Seq[B] = tree match {
+      case Node(value) => convert(value) +: seq
+      case Branch(l,r) => traverseHelper(l,seq)(convert) ++ seq ++ traverseHelper(r,seq)(convert)
+    }
+
+    traverseHelper(tree, seq=Nil)(convert)
   }
 
   /**
@@ -78,7 +85,7 @@ object MathUtil {
     * @return
     */
   def round(value: Double): Double = {
-    ???
+    BigDecimal(value).setScale(3, BigDecimal.RoundingMode.HALF_UP).toDouble
   }
 
   /**
@@ -88,7 +95,7 @@ object MathUtil {
     * @return
     */
   def toRadiants(angle: AngleInDegrees): AngleInRadiants = {
-   ???
+      angle.toRadians
   }
 }
 
@@ -108,7 +115,11 @@ object L2D {
     * @return
     */
   def apply(start: Pt2D, angle: AngleInDegrees, length: Double, color: Color): L2D = {
-    ???
+    val x = round(Math.cos(toRadiants(angle)*length))+start.x
+    val y = round(Math.sin(toRadiants(angle)*length))+start.y
+
+    val end = Pt2D(x,y)
+    L2D(start, end, color)
   }
 
 
