@@ -44,16 +44,8 @@ object Graph {
     * @return
     */
   def traverse[A, B](tree: Tree[A])(convert: A => B): Seq[B] = tree match {
-   /* def traverseHelper[A, B](tree: Tree[A], seq: Seq[B])(convert: A => B): Seq[B] = tree match {
-      case Node(value) => convert(value) +: seq
-      case Branch(l,r) => traverseHelper(l,seq)(convert) ++ seq ++ traverseHelper(r,seq)(convert)
-    }
-
-    traverseHelper(tree, seq=Nil)(convert)*/
     case Node(value) => Seq(convert(value))
     case Branch(l,r) => traverse(l)(convert) ++ traverse(r)(convert)
-
-
   }
 
   /**
@@ -78,15 +70,22 @@ object Graph {
               colorMap: Map[Int, Color] = Graph.colorMap): Tree[L2D] = {
     assert(treeDepth <= colorMap.size, s"Treedepth higher than color mappings - bailing out ...")
 
-//start: Pt2D, angle: AngleInDegrees, length: Double, color: Color
-//factor: Double, deltaAngle: AngleInDegrees, c: Color
+    val depth = 1
 
-    def printGraph(start: Pt2D, initAngle: AngleInDegrees, len: Double, depth: Int, factor: Double, angle: Double, colorMap: Map[Int, Color]): Tree[L2D] = depth match {
-      case 0 => Node(L2D.apply(start,initialAngle,length,colorMap(0)))
-      case _ => ??? //Branch(Node(L2D.apply(start,initAngle-angle,length*factor,colorMap(0))), Node(L2D.apply(start,initAngle+angle,length*factor,colorMap(1))))
+    def mkGraphHelper(startPoint: L2D, depth: Int): Tree[L2D] = {
+      depth match {
+        case size1 if depth == treeDepth => Branch(Node(startPoint), Branch(Node(startPoint.left(factor, angle, colorMap(depth - 1))), Node(startPoint.right(factor, angle, colorMap(depth - 1)))))
+        case _ => Branch(Node(startPoint), Branch(mkGraphHelper(startPoint.left(factor, angle, colorMap(depth - 1)), depth + 1), mkGraphHelper(startPoint.right(factor, angle, colorMap(depth - 1)), depth + 1)))
+      }
     }
-    printGraph(start,initialAngle,length,treeDepth,factor,angle,colorMap)
- }
+
+    if (treeDepth == 0) {
+      Node(L2D.apply(start, initialAngle, length, colorMap(0)))
+    }
+    else {
+      mkGraphHelper(L2D(start, initialAngle, length, colorMap(depth - 1)), depth)
+    }
+  }
 
 }
 
