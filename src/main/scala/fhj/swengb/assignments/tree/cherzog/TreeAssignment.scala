@@ -43,7 +43,7 @@ object Graph {
     * @param convert a converter function
     * @return
     */
-  def traverse[A, B](tree: Tree[A])(convert: A => B): Seq[B] = tree match {
+    def traverse[A, B](tree: Tree[A])(convert: A => B): Seq[B] = tree match {
     case Node(value) => Seq(convert(value))
     case Branch(l,r) => traverse(l)(convert) ++ traverse(r)(convert)
   }
@@ -70,23 +70,19 @@ object Graph {
               colorMap: Map[Int, Color] = Graph.colorMap): Tree[L2D] = {
     assert(treeDepth <= colorMap.size, s"Treedepth higher than color mappings - bailing out ...")
 
+
+
+    def mkGraphHelper(start: L2D, depth: Int): Tree[L2D] = depth match {
+      case root if treeDepth == 0 => Node(start)
+      case nodes if depth == treeDepth => Branch(Node(start), Branch(Node(start.left(factor, angle, colorMap(depth - 1))), Node(start.right(factor, angle, colorMap(depth - 1)))))
+      case _ => Branch(Node(start), Branch(mkGraphHelper(start.left(factor, angle, colorMap(depth - 1)), depth + 1), mkGraphHelper(start.right(factor, angle, colorMap(depth - 1)), depth + 1)))
+    }
+
     val depth = 1
+    val params = L2D(start, initialAngle, length, colorMap(depth - 1))
 
-    def mkGraphHelper(startPoint: L2D, depth: Int): Tree[L2D] = {
-      depth match {
-        case size1 if depth == treeDepth => Branch(Node(startPoint), Branch(Node(startPoint.left(factor, angle, colorMap(depth - 1))), Node(startPoint.right(factor, angle, colorMap(depth - 1)))))
-        case _ => Branch(Node(startPoint), Branch(mkGraphHelper(startPoint.left(factor, angle, colorMap(depth - 1)), depth + 1), mkGraphHelper(startPoint.right(factor, angle, colorMap(depth - 1)), depth + 1)))
-      }
-    }
-
-    if (treeDepth == 0) {
-      Node(L2D.apply(start, initialAngle, length, colorMap(0)))
-    }
-    else {
-      mkGraphHelper(L2D(start, initialAngle, length, colorMap(depth - 1)), depth)
-    }
+    mkGraphHelper(params, depth)
   }
-
 }
 
 object MathUtil {
@@ -128,8 +124,8 @@ object L2D {
     * @return
     */
   def apply(start: Pt2D, angle: AngleInDegrees, length: Double, color: Color): L2D = {
-    val x = round(start.x + length * Math.cos(toRadiants(angle)))
-    val y = round(start.y + length * Math.sin(toRadiants(angle)))
+    val x = round(length * Math.cos(toRadiants(angle)))+start.x
+    val y = round(length * Math.sin(toRadiants(angle)))+start.y
 
     val end = Pt2D(x,y)
     L2D(start, end, color)
@@ -172,3 +168,10 @@ case class L2D(start: Pt2D, end: Pt2D, color: Color) {
 
 }
 
+
+  def right(factor: Double, deltaAngle: AngleInDegrees, c: Color): L2D = {
+    L2D(end, angle + deltaAngle, length * factor, c)
+  }
+
+
+}
